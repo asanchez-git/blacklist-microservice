@@ -12,6 +12,7 @@ marshmallow-sqlalchemy = "*"
 flask-jwt-extended = "*"
 psycopg2-binary = "*"
 python-dotenv = "*"
+email-validator = "*"
 
 [dev-packages]
 
