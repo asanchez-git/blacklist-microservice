@@ -7,6 +7,10 @@ db = SQLAlchemy()
 def create_app():
     app = Flask(__name__)
     app.config.from_object("app.config.Config")
+
+    if not app.config.get("SQLALCHEMY_DATABASE_URI"):
+        raise ValueError("DATABASE_URL is not configured")
+
     db.init_app(app)
 
     from app.routes.blacklists import blacklists_bp
