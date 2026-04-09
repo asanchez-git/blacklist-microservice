@@ -53,10 +53,12 @@ def create_blacklist():
     try:
         db.session.add(blacklist_entry)
         db.session.commit()
-    except IntegrityError:
+    except IntegrityError as e:
         db.session.rollback()
+        print("INTEGRITY ERROR REAL:", str(e.orig))
         return jsonify({
-            "message": "Email already exists in blacklist for this app"
+            "message": "Database integrity error",
+            "detail": str(e.orig)
         }), 409
 
     response_data = response_schema.dump({
