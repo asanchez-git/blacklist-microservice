@@ -6,7 +6,7 @@ health_bp = Blueprint("health", __name__)
 @health_bp.route("/", methods=["GET"])
 def home():
     return jsonify({
-        "message": "blacklist microservice running"
+        "message": "blacklist microservice running v0.2"
     }), 200
 
 
@@ -14,5 +14,5 @@ def home():
 def health():
     return jsonify({
         "status": "ok",
-        "message": "service is healthy"
+        "message": "service is healthy v0.5_1"
     }), 200
