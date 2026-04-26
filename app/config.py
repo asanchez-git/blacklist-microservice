@@ -9,7 +9,26 @@ def normalize_database_url(url: str | None) -> str | None:
     return url
 
 class Config:
-    #SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///blacklist.db")
-    SQLALCHEMY_DATABASE_URI = normalize_database_url(os.getenv("DATABASE_URL"))
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    #SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///blacklist.db")
+    #SQLALCHEMY_DATABASE_URI = normalize_database_url(os.getenv("DATABASE_URL"))
     STATIC_BEARER_TOKEN = os.getenv("STATIC_BEARER_TOKEN", "super-token-123")
+    TESTING = False
+
+
+class DevelopmentConfig(Config):
+    SQLALCHEMY_DATABASE_URI = normalize_database_url(
+        os.getenv("DEV_DATABASE_URL", "sqlite:///blacklist_dev.db")
+    )
+
+
+class TestingConfig(Config):
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = os.getenv("TEST_DATABASE_URL", "sqlite:///:memory:")
+    STATIC_BEARER_TOKEN = os.getenv("TEST_STATIC_BEARER_TOKEN", "test-token-123")
+
+
+class ProductionConfig(Config):
+    SQLALCHEMY_DATABASE_URI = normalize_database_url(
+        os.getenv("DATABASE_URL")
+    )

@@ -1,15 +1,22 @@
+import os
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-
-db = SQLAlchemy()
+from app.extensions import db
 
 
-def create_app():
+
+
+def create_app(config_name=None):
     app = Flask(__name__)
-    app.config.from_object("app.config.Config")
 
-    if not app.config.get("SQLALCHEMY_DATABASE_URI"):
-        raise ValueError("DATABASE_URL is not configured")
+    config_name = config_name or os.getenv("APP_SETTINGS", "development")
+
+    config_map = {
+        "development": "app.config.DevelopmentConfig",
+        "testing": "app.config.TestingConfig",
+        "production": "app.config.ProductionConfig",
+    }
+
+    app.config.from_object(config_map[config_name])
 
     db.init_app(app)
 
