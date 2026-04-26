@@ -154,3 +154,8 @@ def test_home_check(client):
     """Home endpoint responde 200"""
     response = client.get("/")
     assert response.status_code == 200
+
+def test_falla_intencional(client):
+    """Test intencional para demostrar pipeline fallido - REMOVER DESPUÉS"""
+    response = client.get("/health")
+    assert response.status_code == 999  # esto nunca va a ser 999
