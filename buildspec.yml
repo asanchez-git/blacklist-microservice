@@ -1,0 +1,30 @@
+version: 0.2
+
+env:
+  variables:
+    APP_SETTINGS: "testing"
+    TEST_STATIC_BEARER_TOKEN: "test-token-123"
+    TEST_DATABASE_URL: "sqlite:///:memory:"
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.11
+    commands:
+      - echo "Instalando dependencias..."
+      - pip install -r requirements.txt
+
+  pre_build:
+    commands:
+      - echo "Ejecutando pruebas unitarias..."
+      - python -m pytest tests/ -v
+
+  build:
+    commands:
+      - echo "Generando artefacto..."
+      - zip -r artefacto.zip . -x "*.git*" -x "__pycache__/*" -x "*.pyc" -x ".env"
+
+artifacts:
+  files:
+    - artefacto.zip
+  name: blacklist-microservice-artifact
