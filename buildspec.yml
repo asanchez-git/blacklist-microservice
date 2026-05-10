@@ -5,6 +5,9 @@ env:
     APP_SETTINGS: "testing"
     TEST_STATIC_BEARER_TOKEN: "test-token-123"
     TEST_DATABASE_URL: "sqlite:///:memory:"
+    AWS_DEFAULT_REGION: "us-east-1"
+    ECR_REPOSITORY_NAME: "blacklist-microservice"
+    CONTAINER_NAME: "blacklist-microservice" 
 
 phases:
   install:
@@ -18,13 +21,30 @@ phases:
     commands:
       - echo "Ejecutando pruebas unitarias..."
       - python -m pytest tests/ -v
+      - AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+      - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_REPOSITORY_NAME
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=${COMMIT_HASH:=latest}
 
   build:
     commands:
-      - echo "Generando artefacto..."
-      - zip -r artefacto.zip . -x "*.git*" -x "__pycache__/*" -x "*.pyc" -x ".env"
+      - echo "Generando imagen Docker..."
+      - docker build -t $ECR_REPOSITORY_NAME:$IMAGE_TAG .
+      - docker tag $ECR_REPOSITORY_NAME:$IMAGE_TAG $REPOSITORY_URI:$IMAGE_TAG
+      - docker tag $ECR_REPOSITORY_NAME:$IMAGE_TAG $REPOSITORY_URI:latest
 
+  post_build:
+    commands:
+      - echo "Subiendo imagen a ECR..."
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - docker push $REPOSITORY_URI:latest
+      - echo "Generando imagedefinitions.json..."
+      - printf '[{"name":"%s","imageUri":"%s"}]' "$CONTAINER_NAME" "$REPOSITORY_URI:$IMAGE_TAG" > imagedefinitions.json
+      - cat imagedefinitions.json
 artifacts:
   files:
-    - artefacto.zip
+    - imagedefinitions.json
+    - appspec.yaml
+    - taskdef.json
   name: blacklist-microservice-artifact
